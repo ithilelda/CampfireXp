@@ -1,0 +1,12 @@
+{
+    "required": true,
+    "package": "fun.saltyplayer.campfirexp.mixin",
+    "compatibilityLevel": "JAVA_25",
+    "mixins": [
+        "CampfireBlockMixin",
+        "LivingEntityAccessor"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

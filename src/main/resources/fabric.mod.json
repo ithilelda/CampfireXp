@@ -1,0 +1,28 @@
+{
+    "schemaVersion": 1,
+    "id": "campfirexp",
+    "version": "${version}",
+    "name": "CampfireXp",
+    "description": "Campfire & Soul Campfire can drop XP when killing mobs.",
+    "authors": ["ithilelda"],
+    "contact": {
+        "homepage": "https://saltyplayer.fun",
+        "sources": "https://saltyplayer.fun"
+    },
+    "license": "MIT",
+    "icon": "assets/campfirexp/icon.png",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "fun.saltyplayer.campfirexp.CampfireXp"
+        ]
+    },
+    "mixins": [
+        "campfirexp.mixins.json"
+    ],
+    "depends": {
+        "fabricloader": ">=0.15.0",
+        "minecraft": "~26.1.2",
+        "java": ">=25"
+    }
+}
