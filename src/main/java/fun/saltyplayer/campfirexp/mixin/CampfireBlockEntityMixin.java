@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.entity.ExperienceOrb;
@@ -22,6 +23,8 @@ import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.CampfireBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import fun.saltyplayer.campfirexp.Ownable;
 import fun.saltyplayer.campfirexp.PlayerXpSavedData;
 
@@ -74,5 +77,15 @@ public class CampfireBlockEntityMixin implements Ownable {
             PlayerXpSavedData data = PlayerXpSavedData.get(level);
             data.addExp(ownerUUID, totalXp);
         }
+    }
+
+    @Inject(method = "saveAdditional", at = @At("TAIL"))
+    private void saveOwner(ValueOutput output) {
+        output.storeNullable("ownerUUID", UUIDUtil.STRING_CODEC, ownerUUID);
+    }
+
+    @Inject(method = "loadAdditional", at = @At("TAIL"))
+    private void loadOwner(ValueInput input) {
+        ownerUUID = input.read("ownerUUID", UUIDUtil.STRING_CODEC).orElse(null);
     }
 }
