@@ -22,7 +22,7 @@ public class PlayerXpSavedData extends SavedData {
     @SuppressWarnings("null")
     public static final @NonNull Codec<PlayerXpSavedData> CODEC = RecordCodecBuilder.create(instance ->
         instance.group(
-            Codec.unboundedMap(UUIDUtil.CODEC, Codec.INT)
+            Codec.unboundedMap(UUIDUtil.STRING_CODEC, Codec.INT)
                 .fieldOf("exp_map")
                 .forGetter(PlayerXpSavedData::getExpMap)
         ).apply(instance, PlayerXpSavedData::new)
