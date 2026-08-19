@@ -44,11 +44,33 @@ public class CampfireBlockMixin extends Block {
 		if (!original) {
             if (hand == InteractionHand.MAIN_HAND && level instanceof ServerLevel serverLevel) {
 				PlayerXpSavedData xp_data = PlayerXpSavedData.get(serverLevel);
-                if (player.isCrouching()) {
-                    player.sendOverlayMessage(Component.literal("Currently stored " + xp_data.getExp(player.getUUID()) + " points of xp for player " + player.getName().getString()));
-                    cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
-                }
-            }
+				if (itemStack.isEmpty()) {
+					// crouching with an empty hand will deposit exactly one level of experience to the campfire.
+					if (player.isCrouching()) {
+						if (player.experienceLevel > 0) {
+							player.experienceLevel--;
+							int xp_needed = player.getXpNeededForNextLevel();
+							player.experienceLevel++;
+							player.giveExperiencePoints(-xp_needed);
+							xp_data.addExp(player.getUUID(), xp_needed);
+							cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
+						}
+					// standing with an empty hand will withdraw exactly one level of experience from the campfire.
+                	} else {
+						int xp_needed = player.getXpNeededForNextLevel();
+						int current_xp = xp_data.getExp(player.getUUID());
+						int actual_xp = Math.min(xp_needed, current_xp);
+						player.giveExperiencePoints(actual_xp);
+						xp_data.addExp(player.getUUID(), -actual_xp);
+						cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
+					}
+				}
+                
+				// if the interaction is successful, send an overlay message to indicate the current xp storage amount for player.
+				if (cir.getReturnValue() == InteractionResult.SUCCESS_SERVER) {
+					player.sendOverlayMessage(Component.literal("Currently stored " + xp_data.getExp(player.getUUID()) + " points of xp for player " + player.getName().getString()));
+				}
+			}
         }
         return original;
 	}
