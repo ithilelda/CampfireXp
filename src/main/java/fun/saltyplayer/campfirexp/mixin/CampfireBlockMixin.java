@@ -44,7 +44,8 @@ public class CampfireBlockMixin extends Block {
 		if (!original) {
             if (hand == InteractionHand.MAIN_HAND && level instanceof ServerLevel serverLevel) {
 				PlayerXpSavedData xp_data = PlayerXpSavedData.get(serverLevel);
-				if (itemStack.isEmpty()) {
+				Ownable ownable = (Ownable) campfireBlockEntity;
+				if (itemStack.isEmpty() && ownable.getOwnerUUID() == player.getUUID()) {
 					// crouching with an empty hand will deposit exactly one level of experience to the campfire.
 					if (player.isCrouching()) {
 						if (player.experienceLevel > 0) {
