@@ -80,12 +80,12 @@ public class CampfireBlockEntityMixin implements Ownable {
     }
 
     @Inject(method = "saveAdditional", at = @At("TAIL"))
-    private void saveOwner(ValueOutput output) {
+    private void saveOwner(final ValueOutput output, CallbackInfo ci) {
         output.storeNullable("ownerUUID", UUIDUtil.STRING_CODEC, ownerUUID);
     }
 
     @Inject(method = "loadAdditional", at = @At("TAIL"))
-    private void loadOwner(ValueInput input) {
+    private void loadOwner(final ValueInput input, CallbackInfo ci) {
         ownerUUID = input.read("ownerUUID", UUIDUtil.STRING_CODEC).orElse(null);
     }
 }
