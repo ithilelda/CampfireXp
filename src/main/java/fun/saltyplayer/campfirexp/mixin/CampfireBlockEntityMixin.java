@@ -44,6 +44,11 @@ public class CampfireBlockEntityMixin implements Ownable {
         return ownerUUID;
     }
 
+    // utility method to calculate the the modulo of ticks with an offset of the position.
+    private static long getTickModulo(ServerLevel level, BlockPos pos) {
+        return (level.getGameTime() + (Math.abs(pos.hashCode()) % XP_TICK_INTERVAL)) % XP_TICK_INTERVAL;
+    }
+
     // make the signaling boolean always true for owned campfires to circumvent lithium optimization.
     @ModifyVariable(at = @At("STORE"), method = "cookTick", ordinal = 0)
     private static boolean modifyChanged(boolean original, ServerLevel level, BlockPos pos, BlockState state, CampfireBlockEntity blockEntity, RecipeManager.CachedCheck<SingleRecipeInput, CampfireCookingRecipe> recipeCache) {
@@ -58,19 +63,16 @@ public class CampfireBlockEntityMixin implements Ownable {
     private static void processXp(ServerLevel level, BlockPos pos, BlockState state, CampfireBlockEntity blockEntity, RecipeManager.CachedCheck<SingleRecipeInput, CampfireCookingRecipe> recipeCache, CallbackInfo ci) {
         Ownable ownable = (Ownable) blockEntity;
         UUID ownerUUID = ownable.getOwnerUUID();
-        if (ownerUUID != null) {
-            int positionOffset = Math.abs(pos.hashCode()) % XP_TICK_INTERVAL;
-            if((level.getGameTime() + positionOffset) % XP_TICK_INTERVAL == 0) {
-                AABB range = new AABB(pos.getX() - 1, pos.getY(), pos.getZ() - 1, pos.getX() + 2, pos.getY() + 1, pos.getZ() + 2);
-                List<@NonNull ExperienceOrb> orbs = level.getEntitiesOfClass(ExperienceOrb.class, range);
-                int totalXp = 0;
-                for (ExperienceOrb orb : orbs) {
-                    totalXp += orb.getValue();
-                    orb.discard();
-                }
-                PlayerXpSavedData data = PlayerXpSavedData.get(level);
-                data.addExp(ownerUUID, totalXp);
+        if (ownerUUID != null && getTickModulo(level, pos) == 0) {
+            AABB range = new AABB(pos.getX() - 1, pos.getY(), pos.getZ() - 1, pos.getX() + 2, pos.getY() + 1, pos.getZ() + 2);
+            List<@NonNull ExperienceOrb> orbs = level.getEntitiesOfClass(ExperienceOrb.class, range);
+            int totalXp = 0;
+            for (ExperienceOrb orb : orbs) {
+                totalXp += orb.getValue();
+                orb.discard();
             }
+            PlayerXpSavedData data = PlayerXpSavedData.get(level);
+            data.addExp(ownerUUID, totalXp);
         }
     }
 }
