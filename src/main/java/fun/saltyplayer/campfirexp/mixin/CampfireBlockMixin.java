@@ -13,9 +13,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CampfireBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.CampfireBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+
+import java.util.Objects;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -45,7 +48,7 @@ public class CampfireBlockMixin extends Block {
             if (hand == InteractionHand.MAIN_HAND && level instanceof ServerLevel serverLevel) {
 				PlayerXpSavedData xp_data = PlayerXpSavedData.get(serverLevel);
 				Ownable ownable = (Ownable) campfireBlockEntity;
-				if (itemStack.isEmpty() && ownable.getOwnerUUID() == player.getUUID()) {
+				if (itemStack.isEmpty() && Objects.equals(ownable.getOwnerUUID(), player.getUUID())) {
 					// crouching with an empty hand will deposit exactly one level of experience to the campfire.
 					if (player.isCrouching()) {
 						if (player.experienceLevel > 0) {
@@ -91,9 +94,10 @@ public class CampfireBlockMixin extends Block {
 	public void setPlacedBy(@NonNull Level level, @NonNull BlockPos pos, @NonNull BlockState state, @Nullable LivingEntity by, @NonNull ItemStack itemStack) {
 		super.setPlacedBy(level, pos, state, by, itemStack);
 		if (!level.isClientSide() && by instanceof Player player) {
-			Ownable ownable = (Ownable) level.getBlockEntity(pos);
-			if (ownable != null) {
+			BlockEntity be = level.getBlockEntity(pos);
+			if (be instanceof Ownable ownable) {
 				ownable.setOwner(player);
+				be.setChanged();
 			}
 		}
 	}
