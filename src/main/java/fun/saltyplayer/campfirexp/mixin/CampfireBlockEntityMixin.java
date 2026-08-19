@@ -27,8 +27,8 @@ import fun.saltyplayer.campfirexp.PlayerXpSavedData;
 
 @Mixin(CampfireBlockEntity.class)
 public class CampfireBlockEntityMixin implements Ownable {
+    private static final int XP_TICK_INTERVAL = 20;
     private UUID ownerUUID = null;
-    private int xpTick = 20;
 
     public @Nullable Player getOwner(Level level) {
         if (ownerUUID == null) return null;
@@ -44,11 +44,13 @@ public class CampfireBlockEntityMixin implements Ownable {
     }
 
     @Inject(method = "cookTick", at = @At("HEAD"))
-    private void processXp(CampfireBlockEntity instance, ServerLevel level, BlockPos pos, BlockState state, CampfireBlockEntity blockEntity, RecipeManager.CachedCheck<SingleRecipeInput, CampfireCookingRecipe> recipeCache, CallbackInfo ci) {
+    private static void processXp(ServerLevel level, BlockPos pos, BlockState state, CampfireBlockEntity blockEntity, RecipeManager.CachedCheck<SingleRecipeInput, CampfireCookingRecipe> recipeCache, CallbackInfo ci) {
+        Ownable ownable = (Ownable) blockEntity;
+        UUID ownerUUID = ownable.getOwnerUUID();
         if (ownerUUID != null) {
-            xpTick--;
-            instance.setChanged();
-            if(xpTick <= 0) {
+            int positionOffset = Math.abs(pos.hashCode()) % XP_TICK_INTERVAL;
+            blockEntity.setChanged();
+            if((level.getGameTime() + positionOffset) % XP_TICK_INTERVAL == 0) {
                 AABB range = new AABB(pos.getX() - 1, pos.getY(), pos.getZ() - 1, pos.getX() + 2, pos.getY() + 1, pos.getZ() + 2);
                 List<@NonNull ExperienceOrb> orbs = level.getEntitiesOfClass(ExperienceOrb.class, range);
                 int totalXp = 0;
@@ -58,8 +60,6 @@ public class CampfireBlockEntityMixin implements Ownable {
                 }
                 PlayerXpSavedData data = PlayerXpSavedData.get(level);
                 data.addExp(ownerUUID, totalXp);
-                // Reset the tick counter to a random value between 15 and 25 (20 ± 5) to avoid processing collisions.
-                xpTick = 20 + level.getRandom().nextIntBetweenInclusive(-5,5);
             }
         }
     }
