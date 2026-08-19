@@ -59,8 +59,8 @@ public class CampfireBlockMixin extends Block {
 							xp_data.addExp(player.getUUID(), xp_needed);
 							cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
 						} else {
-							player.giveExperienceLevels(-player.totalExperience);
 							xp_data.addExp(player.getUUID(), player.totalExperience);
+							player.giveExperienceLevels(-player.totalExperience);
 							cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
 						}
 					// standing with an empty hand will withdraw exactly one level of experience from the campfire.
